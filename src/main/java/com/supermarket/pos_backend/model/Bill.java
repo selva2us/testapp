@@ -1,0 +1,60 @@
+package com.supermarket.pos_backend.model;
+
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
+@Entity
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Table(name = "bills")
+public class Bill {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private Long staffId;
+
+    private String customerName;
+
+    private String customerPhone;
+
+    private LocalDateTime date;
+
+    private Double totalAmount;
+
+    private Double discountAmount;
+
+    private Double finalAmount;
+
+    @OneToMany(mappedBy = "bill", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<BillItem> items = new ArrayList<>();
+
+    @Enumerated(EnumType.STRING)
+    private PaymentMode paymentMode; // new field
+
+    private LocalDateTime billDate = LocalDateTime.now();
+
+    // convenience method
+    public void addItem(BillItem item) {
+        items.add(item);
+        item.setBill(this);
+    }
+
+    public void removeItem(BillItem item) {
+        items.remove(item);
+        item.setBill(null);
+    }
+    @PrePersist
+    public void prePersist() {
+        date = LocalDateTime.now();
+    }
+}
+
