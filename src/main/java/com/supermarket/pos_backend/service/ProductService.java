@@ -22,6 +22,8 @@ public class ProductService {
         String baseUrl = request.getRequestURL().toString()
                 .replace(request.getRequestURI(), request.getContextPath());
         String imageUrl = product.getImageUrl() != null ? baseUrl + "/" + product.getImageUrl() : null;
+        String brandName = product.getBrand() != null ? product.getBrand().getName() : null;
+        String categoryName = product.getCategory() != null ? product.getCategory().getName() : null;
 
         return new ProductDTO(
                 product.getId(),
@@ -33,7 +35,9 @@ public class ProductService {
                 product.getStockQuantity(),
                 product.getLowStockThreshold(),
                 imageUrl,
-                product.isActive()
+                product.isActive(),
+                brandName,
+                categoryName
         );
     }
 
