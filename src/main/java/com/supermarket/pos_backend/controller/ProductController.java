@@ -20,12 +20,13 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/products")
@@ -85,12 +86,14 @@ public class ProductController {
     }
 
     // Update product with optional image
-    @PutMapping("/{id}")
+    @PutMapping(path = "/{id}",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ProductDTO> updateProduct(@PathVariable Long id,
-                                                    @RequestPart("product") Product product,
+                                                    @RequestPart("product") String productJson,
                                                     @RequestPart(value = "image", required = false) MultipartFile image,
                                                     HttpServletRequest request) throws IOException {
+        ObjectMapper mapper = new ObjectMapper();
+        Product product = mapper.readValue(productJson, Product.class);
 
         if (image != null && !image.isEmpty()) {
             String fileName = saveImage(image);
@@ -104,9 +107,12 @@ public class ProductController {
     // Delete product
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
+    public ResponseEntity<Map<String, String>> deleteProduct(@PathVariable Long id) {
         productService.deleteProduct(id);
-        return ResponseEntity.noContent().build();
+        Map<String, String> response = new HashMap<>();
+        response.put("status", "success");
+        response.put("message", "Product deleted successfully");
+        return ResponseEntity.ok(response);
     }
 
     // Utility method to save uploaded image
