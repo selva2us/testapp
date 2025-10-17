@@ -1,5 +1,6 @@
 package com.supermarket.pos_backend.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.supermarket.pos_backend.model.Brand;
 import com.supermarket.pos_backend.model.Category;
 import com.supermarket.pos_backend.model.Product;
@@ -56,12 +57,18 @@ public class ProductController {
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "Create a new product")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ProductDTO> createProduct(@RequestPart("product") Product product,
-                                                    @RequestPart(value = "image", required = false) MultipartFile image,
-                                                    HttpServletRequest request) throws IOException {
+    public ResponseEntity<ProductDTO> createProduct(
+            @RequestPart("product") String productJson,
+            @RequestPart(value = "image", required = false) MultipartFile image,
+            HttpServletRequest request) throws IOException {
+
+        // Deserialize JSON manually
+        ObjectMapper mapper = new ObjectMapper();
+        Product product = mapper.readValue(productJson, Product.class);
+
+        // Your existing logic
         Category category = categoryRepository.findById(product.getCategory().getId())
                 .orElseThrow(() -> new RuntimeException("Category not found"));
-
         Brand brand = brandRepository.findById(product.getBrand().getId())
                 .orElseThrow(() -> new RuntimeException("Brand not found"));
 
@@ -69,6 +76,7 @@ public class ProductController {
             String fileName = saveImage(image);
             product.setImageUrl(fileName);
         }
+
         product.setCategory(category);
         product.setBrand(brand);
 
