@@ -20,4 +20,7 @@ public class ProductDTO {
     private int lowStockThreshold;
     private String imageUrl;
     private boolean active;
+    private String brandName;
+    private String categoryName;
+
 }
