@@ -1,5 +1,7 @@
 package com.supermarket.pos_backend.config;
 
+import io.swagger.v3.oas.annotations.OpenAPIDefinition;
+import io.swagger.v3.oas.annotations.servers.Server;
 import io.swagger.v3.oas.models.parameters.Parameter;
 import io.swagger.v3.oas.models.media.StringSchema;
 import io.swagger.v3.oas.models.Components;
@@ -12,6 +14,11 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
+@OpenAPIDefinition(
+        servers = {
+                @Server(url = "/", description = "Default Server") // relative URL (auto matches HTTP or HTTPS)
+        }
+)
 public class SwaggerConfig {
 
     @Bean
