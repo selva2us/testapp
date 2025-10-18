@@ -16,6 +16,13 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     List<Product> findByActiveTrue();
 
+    // Count products with low stock
+    long countByStockQuantityLessThan(int threshold);
+
+    // Sum total stock
+    @Query("SELECT SUM(p.stockQuantity) FROM Product p")
+    Integer getTotalProductsInStock();
+
     Optional<Product> findByBarcode(String barcode);
 
     @Query("SELECT p FROM Product p WHERE p.stockQuantity < p.lowStockThreshold")
