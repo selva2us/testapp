@@ -23,5 +23,5 @@ public class ProductDTO {
     private boolean active;
     private String brandName;
     private String categoryName;
-    private List<ProductVariantDTO> variants;
+    private ProductVariantDTO variant;
 }
