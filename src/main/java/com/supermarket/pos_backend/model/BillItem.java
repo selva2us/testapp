@@ -1,5 +1,6 @@
 package com.supermarket.pos_backend.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -27,7 +28,9 @@ public class BillItem {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "bill_id")
+    @JsonBackReference
     private Bill bill;
+
     private Integer returnedQuantity = 0;
 }
 

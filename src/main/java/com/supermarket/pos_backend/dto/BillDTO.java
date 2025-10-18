@@ -19,5 +19,7 @@ public class BillDTO {
     private Double finalAmount;
     private PaymentMode paymentMode;
     private List<BillItemDTO> items;
+    private String billNumber;
+    private String transactionId;
 
 }

@@ -1,5 +1,6 @@
 package com.supermarket.pos_backend.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -35,10 +36,19 @@ public class Bill {
     private Double finalAmount;
 
     @OneToMany(mappedBy = "bill", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
     private List<BillItem> items = new ArrayList<>();
 
     @Enumerated(EnumType.STRING)
     private PaymentMode paymentMode; // new field
+
+    // ✅ Add this new field
+    @Column(unique = true, nullable = true)
+    private String transactionId;
+
+    // ✅ Optional readable bill number for printed receipts
+    @Column(unique = true, nullable = true)
+    private String billNumber;
 
     private LocalDateTime billDate = LocalDateTime.now();
 

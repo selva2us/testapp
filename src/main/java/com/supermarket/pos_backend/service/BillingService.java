@@ -24,14 +24,7 @@ public class BillingService {
 
     @Transactional
     public Bill createBill(BillDTO billDTO) {
-        Bill bill = new Bill();
-        bill.setStaffId(billDTO.getStaffId());
-        bill.setCustomerName(billDTO.getCustomerName());
-        bill.setCustomerPhone(billDTO.getCustomerPhone());
-        bill.setTotalAmount(billDTO.getTotalAmount());
-        bill.setDiscountAmount(billDTO.getDiscountAmount());
-        bill.setFinalAmount(billDTO.getFinalAmount());
-        bill.setPaymentMode(billDTO.getPaymentMode()); // set payment mode
+        Bill bill = getBill(billDTO);
 
         for (BillItemDTO itemDTO : billDTO.getItems()) {
             Product product = productRepository.findById(itemDTO.getProductId())
@@ -55,6 +48,20 @@ public class BillingService {
         }
 
         return billRepository.save(bill);
+    }
+
+    private static Bill getBill(BillDTO billDTO) {
+        Bill bill = new Bill();
+        bill.setStaffId(billDTO.getStaffId());
+        bill.setCustomerName(billDTO.getCustomerName());
+        bill.setCustomerPhone(billDTO.getCustomerPhone());
+        bill.setTotalAmount(billDTO.getTotalAmount());
+        bill.setDiscountAmount(billDTO.getDiscountAmount());
+        bill.setFinalAmount(billDTO.getFinalAmount());
+        bill.setPaymentMode(billDTO.getPaymentMode()); // set payment mode
+        bill.setBillNumber(billDTO.getBillNumber());
+        bill.setTransactionId(billDTO.getTransactionId());
+        return bill;
     }
 
     @Transactional
