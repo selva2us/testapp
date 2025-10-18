@@ -11,6 +11,8 @@ import com.supermarket.pos_backend.repository.ProductRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 public class BillingService {
 
@@ -50,20 +52,6 @@ public class BillingService {
         return billRepository.save(bill);
     }
 
-    private static Bill getBill(BillDTO billDTO) {
-        Bill bill = new Bill();
-        bill.setStaffId(billDTO.getStaffId());
-        bill.setCustomerName(billDTO.getCustomerName());
-        bill.setCustomerPhone(billDTO.getCustomerPhone());
-        bill.setTotalAmount(billDTO.getTotalAmount());
-        bill.setDiscountAmount(billDTO.getDiscountAmount());
-        bill.setFinalAmount(billDTO.getFinalAmount());
-        bill.setPaymentMode(billDTO.getPaymentMode()); // set payment mode
-        bill.setBillNumber(billDTO.getBillNumber());
-        bill.setTransactionId(billDTO.getTransactionId());
-        return bill;
-    }
-
     @Transactional
     public Bill processReturn(ReturnBillDTO returnBillDTO) {
         Bill bill = billRepository.findById(returnBillDTO.getBillId())
@@ -92,5 +80,23 @@ public class BillingService {
 
         // Optionally: adjust finalAmount of bill or create separate return record
         return billRepository.save(bill);
+    }
+
+    public List<Bill> getAllBills() {
+        return billRepository.findAll();
+    }
+
+    private static Bill getBill(BillDTO billDTO) {
+        Bill bill = new Bill();
+        bill.setStaffId(billDTO.getStaffId());
+        bill.setCustomerName(billDTO.getCustomerName());
+        bill.setCustomerPhone(billDTO.getCustomerPhone());
+        bill.setTotalAmount(billDTO.getTotalAmount());
+        bill.setDiscountAmount(billDTO.getDiscountAmount());
+        bill.setFinalAmount(billDTO.getFinalAmount());
+        bill.setPaymentMode(billDTO.getPaymentMode()); // set payment mode
+        bill.setBillNumber(billDTO.getBillNumber());
+        bill.setTransactionId(billDTO.getTransactionId());
+        return bill;
     }
 }
