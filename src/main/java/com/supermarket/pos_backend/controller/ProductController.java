@@ -77,7 +77,9 @@ public class ProductController {
             String fileName = saveImage(image);
             product.setImageUrl(fileName);
         }
-
+        if (product.getVariants() != null) {
+            product.getVariants().forEach(v -> v.setProduct(product));
+        }
         product.setCategory(category);
         product.setBrand(brand);
 
