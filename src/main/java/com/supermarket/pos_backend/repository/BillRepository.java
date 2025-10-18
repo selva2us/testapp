@@ -9,7 +9,7 @@ import java.util.List;
 
 public interface BillRepository extends JpaRepository<Bill, Long> {
     // 1️⃣ Today's revenue
-    @Query(value = "SELECT COALESCE(SUM(final_amount), 0) FROM bills WHERE DATE(billDate) = CURDATE()", nativeQuery = true)
+    @Query(value = "SELECT COALESCE(SUM(final_amount), 0) FROM bills WHERE DATE(bill_date) = CURDATE()", nativeQuery = true)
     Double findTodayRevenue();
 
     // 2️⃣ Last 7 days' total revenue (per day)
@@ -17,9 +17,9 @@ public interface BillRepository extends JpaRepository<Bill, Long> {
             value = """
             SELECT COALESCE(SUM(final_amount), 0)
             FROM bills
-            WHERE billDate >= :startDate
-            GROUP BY DATE(billDate)
-            ORDER BY DATE(billDate)
+            WHERE bill_date >= :startDate
+            GROUP BY DATE(bill_date)
+            ORDER BY DATE(bill_date)
         """,
             nativeQuery = true
     )

@@ -5,6 +5,7 @@ import com.supermarket.pos_backend.model.Brand;
 import com.supermarket.pos_backend.model.Category;
 import com.supermarket.pos_backend.model.Product;
 import com.supermarket.pos_backend.dto.ProductDTO;
+import com.supermarket.pos_backend.model.ProductVariant;
 import com.supermarket.pos_backend.repository.BrandRepository;
 import com.supermarket.pos_backend.repository.CategoryRepository;
 import com.supermarket.pos_backend.service.ProductService;
@@ -77,8 +78,13 @@ public class ProductController {
             String fileName = saveImage(image);
             product.setImageUrl(fileName);
         }
-        if (product.getVariants() != null) {
-            product.getVariants().forEach(v -> v.setProduct(product));
+        if (product.getVariant() != null) {
+            ProductVariant variant = new ProductVariant();
+            variant.setWeightValue(product.getVariant().getWeightValue());
+            variant.setWeightUnit(product.getVariant().getWeightUnit());
+            variant.setPrice(product.getVariant().getPrice());
+            variant.setStockQuantity(product.getVariant().getStockQuantity());
+            product.setVariant(variant); // This sets both sides
         }
         product.setCategory(category);
         product.setBrand(brand);

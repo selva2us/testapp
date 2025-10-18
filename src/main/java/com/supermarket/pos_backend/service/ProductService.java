@@ -28,17 +28,12 @@ public class ProductService {
         String categoryName = product.getCategory() != null ? product.getCategory().getName() : null;
 
         // Map variants
-        List<ProductVariantDTO> variantDTOs = null;
-        if (product.getVariants() != null) {
-            variantDTOs = product.getVariants().stream()
-                    .map(v -> new ProductVariantDTO(
-                            v.getId(),
-                            v.getWeightValue(),
-                            v.getWeightUnit(),
-                            v.getPrice(),
-                            v.getStockQuantity()
-                    ))
-                    .toList();
+        ProductVariantDTO variantDTOs = new ProductVariantDTO();
+        if (product.getVariant() != null) {
+            variantDTOs.setWeightValue(product.getVariant().getWeightValue());
+            variantDTOs.setPrice(product.getVariant().getPrice());
+            variantDTOs.setStockQuantity(product.getVariant().getStockQuantity());
+            variantDTOs.setWeightUnit(product.getVariant().getWeightUnit());
         }
 
         return new ProductDTO(
@@ -89,11 +84,17 @@ public class ProductService {
         if (product.getImageUrl() != null) {
             existing.setImageUrl(product.getImageUrl());
         }
-        existing.getVariants().clear();
-        if (product.getVariants() != null) {
-            validateVariants(product.getVariants());
-            product.getVariants().forEach(v -> v.setProduct(existing));
-            existing.getVariants().addAll(product.getVariants());
+
+        if (product.getVariant() != null) {
+            ProductVariant variant = existing.getVariant();
+            if (variant == null) {
+                variant = new ProductVariant();
+            }
+            variant.setWeightValue(product.getVariant().getWeightValue());
+            variant.setWeightUnit(product.getVariant().getWeightUnit());
+            variant.setPrice(product.getVariant().getPrice());
+            variant.setStockQuantity(product.getVariant().getStockQuantity());
+            existing.setVariant(variant); // sets both sides
         }
 
         Product updated = productRepository.save(existing);

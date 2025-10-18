@@ -52,8 +52,16 @@ public class Product {
 
     private boolean active = true;
 
-    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
-    private List<ProductVariant> variants = new ArrayList<>();
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
+    @JoinColumn(name = "variant_id")
+    private ProductVariant variant;
 
+    // Helper method to set both sides
+    public void setVariant(ProductVariant variant) {
+        this.variant = variant;
+        if (variant != null) {
+            variant.setProduct(this);
+        }
+    }
 }
 
