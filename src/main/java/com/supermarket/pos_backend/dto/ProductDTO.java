@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -22,5 +23,5 @@ public class ProductDTO {
     private boolean active;
     private String brandName;
     private String categoryName;
-
+    private List<ProductVariantDTO> variants;
 }
