@@ -8,14 +8,17 @@ import com.supermarket.pos_backend.dto.ProductDTO;
 import com.supermarket.pos_backend.model.ProductVariant;
 import com.supermarket.pos_backend.repository.BrandRepository;
 import com.supermarket.pos_backend.repository.CategoryRepository;
+import com.supermarket.pos_backend.service.CloudinaryService;
 import com.supermarket.pos_backend.service.ProductService;
 
+import com.supermarket.pos_backend.service.UploadService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.Operation;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.MediaType;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -38,6 +41,10 @@ public class ProductController {
     private final ProductService productService;
     private final CategoryRepository categoryRepository;
     private final BrandRepository brandRepository;
+    private final UploadService uploadService;
+
+    @Autowired
+    private CloudinaryService cloudinaryService;
 
     private static final String UPLOAD_DIR = "uploads/";
 
@@ -56,58 +63,41 @@ public class ProductController {
     }
 
     // Create product with optional image
-    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping
     @Operation(summary = "Create a new product")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ProductDTO> createProduct(
-            @RequestPart("product") String productJson,
-            @RequestPart(value = "image", required = false) MultipartFile image,
-            HttpServletRequest request) throws IOException {
+            @RequestBody Product product,  // Accept JSON directly
+            HttpServletRequest request) {
 
-        // Deserialize JSON manually
-        ObjectMapper mapper = new ObjectMapper();
-        Product product = mapper.readValue(productJson, Product.class);
-
-        // Your existing logic
+        // Validate category and brand
         Category category = categoryRepository.findById(product.getCategory().getId())
                 .orElseThrow(() -> new RuntimeException("Category not found"));
         Brand brand = brandRepository.findById(product.getBrand().getId())
                 .orElseThrow(() -> new RuntimeException("Brand not found"));
-
-        if (image != null && !image.isEmpty()) {
-            String fileName = saveImage(image);
-            product.setImageUrl(fileName);
-        }
+        // Set variant if present
         if (product.getVariant() != null) {
             ProductVariant variant = new ProductVariant();
             variant.setWeightValue(product.getVariant().getWeightValue());
             variant.setWeightUnit(product.getVariant().getWeightUnit());
             variant.setPrice(product.getVariant().getPrice());
             variant.setStockQuantity(product.getVariant().getStockQuantity());
-            product.setVariant(variant); // This sets both sides
+            product.setVariant(variant);
         }
         product.setCategory(category);
         product.setBrand(brand);
-
+        // imageUrl is already set by frontend
         ProductDTO dto = productService.createProduct(product, request);
         return ResponseEntity.ok(dto);
     }
 
     // Update product with optional image
-    @PutMapping(path = "/{id}",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ProductDTO> updateProduct(@PathVariable Long id,
-                                                    @RequestPart("product") String productJson,
-                                                    @RequestPart(value = "image", required = false) MultipartFile image,
-                                                    HttpServletRequest request) throws IOException {
-        ObjectMapper mapper = new ObjectMapper();
-        Product product = mapper.readValue(productJson, Product.class);
-
-        if (image != null && !image.isEmpty()) {
-            String fileName = saveImage(image);
-            product.setImageUrl(fileName);
-        }
-
+    public ResponseEntity<ProductDTO> updateProduct(
+            @PathVariable Long id,
+            @RequestBody Product product,  // Accept JSON directly
+            HttpServletRequest request) {
         ProductDTO dto = productService.updateProduct(id, product, request);
         return ResponseEntity.ok(dto);
     }
@@ -130,7 +120,6 @@ public class ProductController {
         if (!Files.exists(uploadPath)) {
             Files.createDirectories(uploadPath);
         }
-
         // Save the file with original filename
         String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
         Path filePath = uploadPath.resolve(fileName);
@@ -149,5 +138,21 @@ public class ProductController {
         return productService.getProductsByBarcode(barcode)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PostMapping("/upload/excel")
+    public String uploadExcel(@RequestParam("file") MultipartFile file) {
+        return uploadService.importProductsFromExcel(file);
+    }
+
+    @PostMapping("/upload-image")
+    public ResponseEntity<?> uploadImage(@RequestParam("file") MultipartFile file) {
+        try {
+            String imageUrl = cloudinaryService.uploadFile(file); // upload to Cloudinary
+            return ResponseEntity.ok(Map.of("imageUrl", imageUrl));
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", e.getMessage()));
+        }
     }
 }
