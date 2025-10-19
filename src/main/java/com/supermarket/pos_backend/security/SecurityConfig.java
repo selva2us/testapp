@@ -30,7 +30,8 @@ public class SecurityConfig {
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
-                                "/uploads/**"
+                                "/uploads/**",
+                                "/api/admin/cleanup/**"
                         ).permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/products/**").hasAnyRole("CASHIER", "ADMIN")

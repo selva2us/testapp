@@ -2,10 +2,14 @@ package com.supermarket.pos_backend.controller;
 
 import com.supermarket.pos_backend.dto.DashboardStatsDTO;
 import com.supermarket.pos_backend.service.AdminDashboardService;
+import com.supermarket.pos_backend.service.ImageCleanupService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.io.File;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/api/admin")
@@ -16,9 +20,18 @@ public class AdminDashboardController {
     @Autowired
     private AdminDashboardService dashboardService;
 
+    @Autowired
+    private  ImageCleanupService cleanupService;
+
+
     @GetMapping("/dashboard")
     public ResponseEntity<DashboardStatsDTO> getDashboardStats() {
         DashboardStatsDTO stats = dashboardService.getDashboardStats();
         return ResponseEntity.ok(stats);
+    }
+
+    @PostMapping("/cleanup")
+    public String runCleanup() {
+        return cleanupService.deleteAllFiles();
     }
 }
