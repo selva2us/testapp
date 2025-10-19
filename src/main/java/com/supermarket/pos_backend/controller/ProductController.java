@@ -8,13 +8,16 @@ import com.supermarket.pos_backend.dto.ProductDTO;
 import com.supermarket.pos_backend.model.ProductVariant;
 import com.supermarket.pos_backend.repository.BrandRepository;
 import com.supermarket.pos_backend.repository.CategoryRepository;
+import com.supermarket.pos_backend.service.CloudinaryService;
 import com.supermarket.pos_backend.service.ProductService;
 
+import com.supermarket.pos_backend.service.UploadService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.Operation;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -38,6 +41,10 @@ public class ProductController {
     private final ProductService productService;
     private final CategoryRepository categoryRepository;
     private final BrandRepository brandRepository;
+    private final UploadService uploadService;
+
+    @Autowired
+    private CloudinaryService cloudinaryService;
 
     private static final String UPLOAD_DIR = "uploads/";
 
@@ -75,8 +82,8 @@ public class ProductController {
                 .orElseThrow(() -> new RuntimeException("Brand not found"));
 
         if (image != null && !image.isEmpty()) {
-            String fileName = saveImage(image);
-            product.setImageUrl(fileName);
+            String imageUrl = cloudinaryService.uploadFile(image);
+            product.setImageUrl(imageUrl);
         }
         if (product.getVariant() != null) {
             ProductVariant variant = new ProductVariant();
@@ -104,8 +111,8 @@ public class ProductController {
         Product product = mapper.readValue(productJson, Product.class);
 
         if (image != null && !image.isEmpty()) {
-            String fileName = saveImage(image);
-            product.setImageUrl(fileName);
+            String imageUrl = cloudinaryService.uploadFile(image);
+            product.setImageUrl(imageUrl);
         }
 
         ProductDTO dto = productService.updateProduct(id, product, request);
@@ -130,7 +137,6 @@ public class ProductController {
         if (!Files.exists(uploadPath)) {
             Files.createDirectories(uploadPath);
         }
-
         // Save the file with original filename
         String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
         Path filePath = uploadPath.resolve(fileName);
@@ -149,5 +155,10 @@ public class ProductController {
         return productService.getProductsByBarcode(barcode)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PostMapping("/upload/excel")
+    public String uploadExcel(@RequestParam("file") MultipartFile file) {
+        return uploadService.importProductsFromExcel(file);
     }
 }
