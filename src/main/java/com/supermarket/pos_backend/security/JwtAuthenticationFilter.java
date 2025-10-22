@@ -1,14 +1,13 @@
 package com.supermarket.pos_backend.security;
 
-import io.jsonwebtoken.Jwts;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -28,11 +27,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
+
         String path = request.getServletPath();
+        // Skip Swagger/OpenAPI endpoints
         if (path.startsWith("/v3/api-docs") || path.startsWith("/swagger-ui")) {
             filterChain.doFilter(request, response);
             return;
         }
+
         final String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
 
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
@@ -40,12 +42,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             try {
                 String email = jwtUtil.extractEmail(token);
-                if (jwtUtil.validateToken(token, email) && SecurityContextHolder.getContext().getAuthentication() == null) {
-                    // Extract role from token
-                    String role = Jwts.parser().setSigningKey("MySuperSecretKey12345")
-                            .parseClaimsJws(token)
-                            .getBody()
-                            .get("role", String.class);
+                if (jwtUtil.validateToken(token, email)
+                        && SecurityContextHolder.getContext().getAuthentication() == null) {
+
+                    // Extract role from token using JwtUtil
+                    String role = jwtUtil.extractRole(token);
 
                     SimpleGrantedAuthority authority = new SimpleGrantedAuthority("ROLE_" + role);
 
@@ -55,6 +56,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     SecurityContextHolder.getContext().setAuthentication(authToken);
                 }
             } catch (Exception e) {
+                // Token invalid or expired
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 return;
             }

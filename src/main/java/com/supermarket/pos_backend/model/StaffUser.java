@@ -1,5 +1,6 @@
 package com.supermarket.pos_backend.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -30,7 +31,7 @@ public class StaffUser {
     private String email;
 
     @NotBlank(message = "Password is required")
-    @Size(min = 4, max = 50, message = "Password must be between 4 and 50 characters")
+    @Size(min = 4, max = 100, message = "Password must be between 4 and 50 characters")
     private String password;
 
     @Column(unique = true)
@@ -43,8 +44,9 @@ public class StaffUser {
 
     private Boolean active = true;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "admin_id")
+    @JsonBackReference
     private AdminUser admin;
 
     private LocalDateTime createdAt = LocalDateTime.now();
