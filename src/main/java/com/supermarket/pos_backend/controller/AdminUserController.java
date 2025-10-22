@@ -30,7 +30,7 @@ public class AdminUserController {
         this.adminRepo = adminRepo;
     }
 
-    @PostMapping
+    @PostMapping("/register")
     public AdminUser createAdmin(@Valid @RequestBody AdminUser admin) {
         return adminService.createAdmin(admin);
     }

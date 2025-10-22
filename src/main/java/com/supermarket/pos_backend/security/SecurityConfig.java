@@ -33,7 +33,8 @@ public class SecurityConfig {
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
                                 "/swagger-ui/index.html",
-                                "/swagger-ui/oauth2-redirect.html"
+                                "/swagger-ui/oauth2-redirect.html",
+                                "/api/admins/register"
                         ).permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/products/**").hasAnyRole("CASHIER", "ADMIN")
