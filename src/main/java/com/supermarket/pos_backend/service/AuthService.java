@@ -14,7 +14,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 @Service
@@ -30,24 +32,34 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
 
-    public String login(String emailOrMobile, String password) {
-        // Try to find admin
+    public Map<String, Object> login(String emailOrMobile, String password) {
+        String role = null;
+        String email = null;
+
         AdminUser admin = adminRepo.findByEmail(emailOrMobile)
                 .orElseGet(() -> adminRepo.findByMobile(emailOrMobile).orElse(null));
 
         if (admin != null && passwordEncoder.matches(password, admin.getPassword())) {
-            return jwtUtil.generateToken(admin.getEmail(), "ADMIN");
+            role = "ADMIN";
+            email = admin.getEmail();
+        } else {
+            StaffUser staff = staffRepo.findByEmail(emailOrMobile)
+                    .orElseGet(() -> staffRepo.findByMobile(emailOrMobile).orElse(null));
+            if (staff != null && passwordEncoder.matches(password, staff.getPassword())) {
+                role = "CASHIER";
+                email = staff.getEmail();
+            }
         }
 
-        // Try to find staff
-        StaffUser staff = staffRepo.findByEmail(emailOrMobile)
-                .orElseGet(() -> staffRepo.findByMobile(emailOrMobile).orElse(null));
+        if (role == null) throw new RuntimeException("Invalid credentials");
 
-        if (staff != null && passwordEncoder.matches(password, staff.getPassword())) {
-            return jwtUtil.generateToken(staff.getEmail(), "CASHIER");
-        }
+        String token = jwtUtil.generateToken(email, role);
 
-        throw new RuntimeException("Invalid credentials");
+        Map<String, Object> response = new HashMap<>();
+        response.put("token", token);
+        response.put("role", role);
+        response.put("email", email); // optional
+        return response;
     }
     // Generate OTP
     public String sendOtp(String mobileNumber, String deviceId) {

@@ -9,6 +9,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
 
 
 @RestController
@@ -37,8 +38,13 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@Valid @RequestBody LoginRequest request) {
-        String token = authService.login(request.getEmailOrMobile(), request.getPassword());
-        return ResponseEntity.ok().body(new JwtResponse(token));
+        Map<String, Object> loginData = authService.login(request.getEmailOrMobile(), request.getPassword());
+
+        String token = (String) loginData.get("token");
+        String role = (String) loginData.get("role");
+        String email = (String) loginData.get("email");
+
+        return ResponseEntity.ok(new JwtResponse(token, role, email));
     }
 
     @PostMapping("/logout")
@@ -56,6 +62,29 @@ public class AuthController {
     // Inner class for response
     static class JwtResponse {
         private String token;
+        private String role;
+        private String email;
+
+        public JwtResponse(String token, String role, String email) {
+            this.token = token;
+            this.role = role;
+            this.email = email;
+        }
+        public String getRole() {
+            return role;
+        }
+
+        public void setRole(String role) {
+            this.role = role;
+        }
+
+        public String getEmail() {
+            return email;
+        }
+
+        public void setEmail(String email) {
+            this.email = email;
+        }
 
         public JwtResponse(String token) {
             this.token = token;
