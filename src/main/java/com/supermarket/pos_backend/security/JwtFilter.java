@@ -24,9 +24,9 @@ import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
-public class JwtFilter extends OncePerRequestFilter {
+public class JwtFilter{ //extends OncePerRequestFilter {
 
-    private final JwtService jwtService;
+    /*private final JwtService jwtService;
     private final UserRepository userRepo;
     private final TokenBlacklistService tokenBlacklistService;
 
@@ -87,5 +87,5 @@ public class JwtFilter extends OncePerRequestFilter {
         }
 
         filterChain.doFilter(request, response);
-    }
+    }*/
 }

@@ -1,7 +1,9 @@
 package com.supermarket.pos_backend.controller;
 
+import com.supermarket.pos_backend.dto.LoginRequest;
 import com.supermarket.pos_backend.service.AuthService;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
@@ -33,6 +35,12 @@ public class AuthController {
         return ResponseEntity.ok(token);
     }
 
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest request) {
+        String token = authService.login(request.getEmailOrMobile(), request.getPassword());
+        return ResponseEntity.ok().body(new JwtResponse(token));
+    }
+
     @PostMapping("/logout")
     public ResponseEntity<String> logout(@RequestParam String mobileNumber,
                                          @RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader) {
@@ -42,5 +50,23 @@ public class AuthController {
         }
         authService.logout(mobileNumber, token);
         return ResponseEntity.ok("Logged out successfully");
+    }
+
+
+    // Inner class for response
+    static class JwtResponse {
+        private String token;
+
+        public JwtResponse(String token) {
+            this.token = token;
+        }
+
+        public String getToken() {
+            return token;
+        }
+
+        public void setToken(String token) {
+            this.token = token;
+        }
     }
 }
