@@ -1,11 +1,13 @@
 package com.supermarket.pos_backend.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import org.hibernate.annotations.ColumnDefault;
 
 import java.math.BigDecimal;
 
@@ -31,16 +33,22 @@ public class Product {
     @JoinColumn(name = "brand_id")
     private Brand brand;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "admin_id", nullable = false)
+    @JsonBackReference
+    @ColumnDefault("1")
+    private AdminUser admin;
+
     @Column(unique = true, nullable = false)
     private String barcode;
 
+    @PrePersist
     @PreUpdate
-    public void generateBarcode() {
+    public void ensureBarcode() {
         if (barcode == null || barcode.isEmpty()) {
-            barcode = "BC" + System.currentTimeMillis();
+            barcode = "BC" + System.currentTimeMillis() + (int)(Math.random() * 9000 + 1000);
         }
     }
-
     @Column(nullable = false)
     private BigDecimal price;
 

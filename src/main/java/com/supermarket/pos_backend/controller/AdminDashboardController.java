@@ -1,6 +1,8 @@
 package com.supermarket.pos_backend.controller;
 
+import com.supermarket.pos_backend.annotations.CurrentAdmin;
 import com.supermarket.pos_backend.dto.DashboardStatsDTO;
+import com.supermarket.pos_backend.model.AdminUser;
 import com.supermarket.pos_backend.service.AdminDashboardService;
 import com.supermarket.pos_backend.service.ImageCleanupService;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -25,8 +27,8 @@ public class AdminDashboardController {
 
 
     @GetMapping("/dashboard")
-    public ResponseEntity<DashboardStatsDTO> getDashboardStats() {
-        DashboardStatsDTO stats = dashboardService.getDashboardStats();
+    public ResponseEntity<DashboardStatsDTO> getDashboardStats(@CurrentAdmin AdminUser admin) {
+        DashboardStatsDTO stats = dashboardService.getDashboardStats(admin);
         return ResponseEntity.ok(stats);
     }
 

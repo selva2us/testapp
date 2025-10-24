@@ -1,5 +1,7 @@
 package com.supermarket.pos_backend.security;
 
+import com.supermarket.pos_backend.model.AdminUser;
+import com.supermarket.pos_backend.repository.AdminUserRepository;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -13,8 +15,12 @@ public class JwtUtil {
 
     // ✅ Use a long, Base64-encoded key (generate with: openssl rand -base64 64)
     private static final String SECRET_KEY = "q8C6LupK6bG8MtLONRHV7+5Zm23DFENpb3CNQyqV5BzFhC0SmBqJY3WShcFX3qPL";
-
+    private final AdminUserRepository adminRepo;
     private static final long EXPIRATION_MS = 1000 * 60 * 60 * 5; // 5 hours
+
+    public JwtUtil(AdminUserRepository adminRepo) {
+        this.adminRepo = adminRepo;
+    }
 
     // 🔑 Convert to HMAC key
     private Key getSignInKey() {
@@ -69,5 +75,4 @@ public class JwtUtil {
                 .getBody()
                 .get("role", String.class);
     }
-
 }

@@ -1,7 +1,12 @@
 package com.supermarket.pos_backend.controller;
 
+import com.supermarket.pos_backend.annotations.CurrentAdmin;
+import com.supermarket.pos_backend.model.AdminUser;
 import com.supermarket.pos_backend.model.Brand;
+import com.supermarket.pos_backend.repository.AdminUserRepository;
 import com.supermarket.pos_backend.repository.BrandRepository;
+import com.supermarket.pos_backend.security.AdminContext;
+import com.supermarket.pos_backend.security.JwtUtil;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -18,16 +23,27 @@ public class BrandController {
     private final BrandRepository brandRepository;
 
     @PostMapping
-    public ResponseEntity<Brand> create(@RequestBody Brand brand) {
-        if (brandRepository.existsByName(brand.getName())) {
-            return ResponseEntity.badRequest().build();
+    public ResponseEntity<?> create(@CurrentAdmin AdminUser admin, @RequestBody Brand brand) {
+        try {
+             brand.setAdmin(admin);
+            if (brandRepository.existsByNameAndAdmin(brand.getName(), admin)) {
+                return ResponseEntity.badRequest().body("Brand already exists for this admin");
+            }
+            return ResponseEntity.ok(brandRepository.save(brand));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("Error: " + e.getMessage());
         }
-        return ResponseEntity.ok(brandRepository.save(brand));
     }
 
     @GetMapping
-    public List<Brand> getAll() {
-        return brandRepository.findAll();
+    public ResponseEntity<?> getAll(@CurrentAdmin AdminUser admin) {
+        try {
+            return ResponseEntity.ok(brandRepository.findByAdmin(admin));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("Error: " + e.getMessage());
+        }
     }
 
     @DeleteMapping("/{id}")

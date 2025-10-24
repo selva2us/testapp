@@ -2,6 +2,7 @@ package com.supermarket.pos_backend.service;
 
 import com.supermarket.pos_backend.dto.ProductDTO;
 import com.supermarket.pos_backend.dto.ProductVariantDTO;
+import com.supermarket.pos_backend.model.AdminUser;
 import com.supermarket.pos_backend.model.Product;
 import com.supermarket.pos_backend.model.ProductVariant;
 import com.supermarket.pos_backend.repository.ProductRepository;
@@ -20,10 +21,8 @@ public class ProductService {
     private final ProductRepository productRepository;
 
     // Convert entity to DTO with full URL
-    private ProductDTO toDTO(Product product, HttpServletRequest request) {
-        String baseUrl = request.getRequestURL().toString()
-                .replace(request.getRequestURI(), request.getContextPath());
-        String imageUrl = product.getImageUrl() != null ? baseUrl + "/" + product.getImageUrl() : null;
+    private ProductDTO toDTO(Product product) {
+        String imageUrl = product.getImageUrl() != null ? product.getImageUrl() : null;
         String brandName = product.getBrand() != null ? product.getBrand().getName() : null;
         String categoryName = product.getCategory() != null ? product.getCategory().getName() : null;
 
@@ -52,30 +51,30 @@ public class ProductService {
                 variantDTOs // pass mapped variants here
         );
     }
-
-    public List<ProductDTO> getAllProducts(HttpServletRequest request) {
-        return productRepository.findAll().stream()
-                .map(product -> toDTO(product, request))
-                .collect(Collectors.toList());
-    }
-
-    public ProductDTO getProductById(Long id, HttpServletRequest request) {
+    public ProductDTO getProductById(Long id,AdminUser admin) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Product not found"));
-        return toDTO(product, request);
+        return toDTO(product);
     }
 
     public ProductDTO createProduct(Product product, HttpServletRequest request) {
         Product saved = productRepository.save(product);
-        return toDTO(saved, request);
+        return toDTO(saved);
     }
 
-    public ProductDTO updateProduct(Long id, Product product, HttpServletRequest request) {
-        Product existing = productRepository.findById(id)
+    public List<ProductDTO> getAllProductsByAdmin(AdminUser admin) {
+        return productRepository.findByAdmin(admin)
+                .stream()
+                .map(ProductDTO::fromEntity)
+                .toList();
+    }
+    public ProductDTO updateProduct(Long id, Product product, HttpServletRequest request, AdminUser admin) {
+        Product existing = productRepository.findByIdAndAdmin(id, admin)
                 .orElseThrow(() -> new RuntimeException("Product not found"));
 
         existing.setName(product.getName());
         existing.setCategory(product.getCategory());
+        existing.setBrand(product.getBrand());
         existing.setPrice(product.getPrice());
         existing.setStockQuantity(product.getStockQuantity());
         existing.setLowStockThreshold(product.getLowStockThreshold());
@@ -98,7 +97,7 @@ public class ProductService {
         }
 
         Product updated = productRepository.save(existing);
-        return toDTO(updated, request);
+        return toDTO(updated);
     }
 
     private void validateVariants(List<ProductVariant> variants) {
@@ -118,8 +117,8 @@ public class ProductService {
         productRepository.deleteById(id);
     }
 
-    public List<Product> getLowStockProducts() {
-        return productRepository.findByStockQuantityLessThanThreshold();
+    public List<Product> getLowStockProducts(AdminUser admin) {
+        return productRepository.findByAdminAndStockQuantityLessThanThreshold(admin);
     }
 
     public Optional<Product> getProductsByBarcode(String barcode) {

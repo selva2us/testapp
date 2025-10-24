@@ -28,8 +28,9 @@ public class UploadService {
         this.cloudinaryService = cloudinaryService;
     }
 
-    public String importProductsFromExcel(MultipartFile file) {
+    public String importProductsFromExcel(AdminUser admin,MultipartFile file) {
         int count = 0;
+
         try (Workbook workbook = new XSSFWorkbook(file.getInputStream())) {
             Sheet sheet = workbook.getSheetAt(0);
 
@@ -38,13 +39,16 @@ public class UploadService {
 
                 Product product = new Product();
                 product.setName(row.getCell(0).getStringCellValue());
+
                 String brandName = row.getCell(1).getStringCellValue();
                 String categoryName = row.getCell(2).getStringCellValue();
 
-                Brand brand = brandRepository.findByNameIgnoreCase(brandName)
-                        .orElseGet(() -> brandRepository.save(new Brand(null, brandName)));
-                Category category = categoryRepository.findByNameIgnoreCase(categoryName)
-                        .orElseGet(() -> categoryRepository.save(new Category(null, categoryName)));
+                // Create or fetch brand/category for this admin
+                Brand brand = brandRepository.findByNameIgnoreCaseAndAdmin(brandName, admin)
+                        .orElseGet(() -> brandRepository.save(new Brand(null, brandName, admin)));
+
+                Category category = categoryRepository.findByNameIgnoreCaseAndAdmin(categoryName, admin)
+                        .orElseGet(() -> categoryRepository.save(new Category(null, categoryName, admin)));
 
                 product.setBrand(brand);
                 product.setCategory(category);
@@ -54,32 +58,25 @@ public class UploadService {
                 product.setLowStockThreshold((int) row.getCell(6).getNumericCellValue());
                 product.setActive(true);
 
-                // Handle Variant
+                // Variant
                 ProductVariant variant = new ProductVariant();
                 variant.setWeightValue(row.getCell(8).getNumericCellValue());
-
                 String weightUnitStr = row.getCell(9).getStringCellValue().trim().toUpperCase();
                 variant.setWeightUnit(WeightUnit.valueOf(weightUnitStr));
-
                 variant.setPrice(BigDecimal.valueOf(row.getCell(10).getNumericCellValue()));
                 variant.setStockQuantity((int) row.getCell(11).getNumericCellValue());
                 product.setVariant(variant);
 
-
-                // Upload image from file path or Multipart (optional)
+                // Optional image
                 String imageUrl = row.getCell(7).getStringCellValue();
                 if (imageUrl != null && !imageUrl.isEmpty()) {
                     String cloudinaryUrl = cloudinaryService.uploadFromUrl(imageUrl);
                     product.setImageUrl(cloudinaryUrl);
                 }
-/*             String imagePath = row.getCell(7).getStringCellValue();
-              if (imagePath != null && !imagePath.isEmpty()) {
-                    File imageFile = new File(imagePath);
-                    if (imageFile.exists()) {
-                        String imageUrl = cloudinaryService.uploadFile(imageFile);
-                        product.setImageUrl(imageUrl);
-                    }
-                }*/
+
+                // Set admin for product
+                product.setAdmin(admin);
+
                 productRepository.save(product);
                 count++;
             }

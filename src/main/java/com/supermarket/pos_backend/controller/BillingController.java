@@ -1,7 +1,9 @@
 package com.supermarket.pos_backend.controller;
 
+import com.supermarket.pos_backend.annotations.CurrentAdmin;
 import com.supermarket.pos_backend.dto.BillDTO;
 import com.supermarket.pos_backend.dto.ReturnBillDTO;
+import com.supermarket.pos_backend.model.AdminUser;
 import com.supermarket.pos_backend.model.Bill;
 import com.supermarket.pos_backend.service.BillingService;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -23,19 +25,19 @@ public class BillingController {
     }
 
     @PostMapping
-    public ResponseEntity<Bill> createBill(@RequestBody BillDTO billDTO) {
-        Bill savedBill = billingService.createBill(billDTO);
+    public ResponseEntity<Bill> createBill(@CurrentAdmin AdminUser admin,@RequestBody BillDTO billDTO) {
+        Bill savedBill = billingService.createBill(admin,billDTO);
         return ResponseEntity.ok(savedBill);
     }
 
     @GetMapping
-    public ResponseEntity<List<Bill>> getAllBills() {
-        List<Bill> bills = billingService.getAllBills();
+    public ResponseEntity<List<Bill>> getAllBills(@CurrentAdmin AdminUser admin) {
+        List<Bill> bills = billingService.getAllBills(admin);
         return ResponseEntity.ok(bills);
     }
     @PostMapping("/return")
-    public ResponseEntity<Bill> returnBill(@RequestBody ReturnBillDTO returnBillDTO) {
-        Bill updatedBill = billingService.processReturn(returnBillDTO);
+    public ResponseEntity<Bill> returnBill(@CurrentAdmin AdminUser admin,@RequestBody ReturnBillDTO returnBillDTO) {
+        Bill updatedBill = billingService.processReturn(admin,returnBillDTO);
         return ResponseEntity.ok(updatedBill);
     }
 

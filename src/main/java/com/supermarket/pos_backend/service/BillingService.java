@@ -3,6 +3,7 @@ package com.supermarket.pos_backend.service;
 import com.supermarket.pos_backend.dto.BillDTO;
 import com.supermarket.pos_backend.dto.BillItemDTO;
 import com.supermarket.pos_backend.dto.ReturnBillDTO;
+import com.supermarket.pos_backend.model.AdminUser;
 import com.supermarket.pos_backend.model.Bill;
 import com.supermarket.pos_backend.model.BillItem;
 import com.supermarket.pos_backend.model.Product;
@@ -25,7 +26,7 @@ public class BillingService {
     }
 
     @Transactional
-    public Bill createBill(BillDTO billDTO) {
+    public Bill createBill(AdminUser admin, BillDTO billDTO) {
         Bill bill = getBill(billDTO);
 
         for (BillItemDTO itemDTO : billDTO.getItems()) {
@@ -40,6 +41,7 @@ public class BillingService {
             productRepository.save(product);
 
             BillItem item = new BillItem();
+            bill.setAdmin(admin);
             item.setProductId(itemDTO.getProductId());
             item.setProductName(itemDTO.getProductName());
             item.setQuantity(itemDTO.getQuantity());
@@ -53,8 +55,8 @@ public class BillingService {
     }
 
     @Transactional
-    public Bill processReturn(ReturnBillDTO returnBillDTO) {
-        Bill bill = billRepository.findById(returnBillDTO.getBillId())
+    public Bill processReturn(AdminUser admin,ReturnBillDTO returnBillDTO) {
+        Bill bill = billRepository.findByIdAndAdmin(returnBillDTO.getBillId() , admin)
                 .orElseThrow(() -> new RuntimeException("Original bill not found"));
 
         for (var returnItem : returnBillDTO.getItems()) {
@@ -82,8 +84,8 @@ public class BillingService {
         return billRepository.save(bill);
     }
 
-    public List<Bill> getAllBills() {
-        return billRepository.findAll();
+    public List<Bill> getAllBills(AdminUser admin) {
+        return billRepository.findByAdmin(admin);
     }
 
     private static Bill getBill(BillDTO billDTO) {

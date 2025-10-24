@@ -13,11 +13,11 @@ public class LowStockScheduler {
 
     @Scheduled(cron = "0 0 9 * * ?") // every day at 9 AM
     public void checkLowStock() {
-        var lowStock = productService.getLowStockProducts();
+       /* var lowStock = productService.getLowStockProducts();
         if (!lowStock.isEmpty()) {
             // send email, push notification, or log
             System.out.println("Low stock items: " + lowStock);
-        }
+        }*/
     }
 }
 

@@ -1,11 +1,9 @@
 package com.supermarket.pos_backend.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.supermarket.pos_backend.model.Brand;
-import com.supermarket.pos_backend.model.Category;
-import com.supermarket.pos_backend.model.Product;
+import com.supermarket.pos_backend.annotations.CurrentAdmin;
+import com.supermarket.pos_backend.model.*;
 import com.supermarket.pos_backend.dto.ProductDTO;
-import com.supermarket.pos_backend.model.ProductVariant;
 import com.supermarket.pos_backend.repository.BrandRepository;
 import com.supermarket.pos_backend.repository.CategoryRepository;
 import com.supermarket.pos_backend.service.CloudinaryService;
@@ -49,25 +47,27 @@ public class ProductController {
 
     private static final String UPLOAD_DIR = "uploads/";
 
-    // Get all products
     @GetMapping
-    @Operation(summary = "Get all products")
-    public ResponseEntity<List<ProductDTO>> getAllProducts(HttpServletRequest request) {
-        return ResponseEntity.ok(productService.getAllProducts(request));
+    @Operation(summary = "Get all products for the logged-in admin")
+    public ResponseEntity<List<ProductDTO>> getAllProducts(@CurrentAdmin AdminUser admin) {
+        List<ProductDTO> products = productService.getAllProductsByAdmin(admin);
+        return ResponseEntity.ok(products);
     }
 
-    // Get product by ID
+    // Get product by ID (only if belongs to this admin)
     @GetMapping("/{id}")
-    @Operation(summary = "Get a product by ID")
-    public ResponseEntity<ProductDTO> getProductById(@PathVariable Long id, HttpServletRequest request) {
-        return ResponseEntity.ok(productService.getProductById(id, request));
+    @Operation(summary = "Get a product by ID for the logged-in admin")
+    public ResponseEntity<ProductDTO> getProductById(
+            @PathVariable Long id,
+            @CurrentAdmin AdminUser admin) {
+        ProductDTO product = productService.getProductById(id, admin);
+        return ResponseEntity.ok(product);
     }
-
     // Create product with optional image
     @PostMapping
     @Operation(summary = "Create a new product")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ProductDTO> createProduct(
+    public ResponseEntity<ProductDTO> createProduct(@CurrentAdmin AdminUser admin,
             @RequestBody Product product,  // Accept JSON directly
             HttpServletRequest request) {
 
@@ -87,6 +87,7 @@ public class ProductController {
         }
         product.setCategory(category);
         product.setBrand(brand);
+        product.setAdmin(admin);
         // imageUrl is already set by frontend
         ProductDTO dto = productService.createProduct(product, request);
         return ResponseEntity.ok(dto);
@@ -95,11 +96,11 @@ public class ProductController {
     // Update product with optional image
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ProductDTO> updateProduct(
+    public ResponseEntity<ProductDTO> updateProduct(@CurrentAdmin AdminUser admin,
             @PathVariable Long id,
             @RequestBody Product product,  // Accept JSON directly
             HttpServletRequest request) {
-        ProductDTO dto = productService.updateProduct(id, product, request);
+        ProductDTO dto = productService.updateProduct(id, product, request,admin);
         return ResponseEntity.ok(dto);
     }
 
@@ -130,8 +131,8 @@ public class ProductController {
     }
 
     @GetMapping("/low-stock")
-    public List<Product> getLowStockProducts() {
-        return productService.getLowStockProducts();
+    public List<Product> getLowStockProducts(@CurrentAdmin AdminUser admin) {
+        return productService.getLowStockProducts(admin);
     }
 
     @GetMapping("/barcode/{barcode}")
@@ -142,8 +143,8 @@ public class ProductController {
     }
 
     @PostMapping("/upload/excel")
-    public String uploadExcel(@RequestParam("file") MultipartFile file) {
-        return uploadService.importProductsFromExcel(file);
+    public String uploadExcel(@CurrentAdmin AdminUser admin,@RequestParam("file") MultipartFile file) {
+        return uploadService.importProductsFromExcel(admin,file);
     }
 
     @PostMapping(path = "/upload-image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
