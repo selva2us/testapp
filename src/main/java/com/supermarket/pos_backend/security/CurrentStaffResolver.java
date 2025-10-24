@@ -1,11 +1,10 @@
 package com.supermarket.pos_backend.security;
 
-import com.supermarket.pos_backend.annotations.CurrentAdmin;
+import com.supermarket.pos_backend.annotations.CurrentStaff;
 import com.supermarket.pos_backend.model.AdminUser;
 import com.supermarket.pos_backend.model.StaffUser;
-import com.supermarket.pos_backend.repository.AdminUserRepository;
 import com.supermarket.pos_backend.repository.StaffUserRepository;
-import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
 import org.springframework.core.MethodParameter;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.support.WebDataBinderFactory;
@@ -16,23 +15,15 @@ import org.springframework.web.method.support.ModelAndViewContainer;
 import java.util.Optional;
 
 @Component
-public class CurrentAdminResolver implements HandlerMethodArgumentResolver {
-
-    private final AdminUserRepository adminUserRepository;
+@RequiredArgsConstructor
+public class CurrentStaffResolver implements HandlerMethodArgumentResolver {
     private final StaffUserRepository staffRepo;
-
     private final JwtUtil jwtUtil;
-
-    public CurrentAdminResolver(AdminUserRepository adminUserRepository, StaffUserRepository staffRepo, JwtUtil jwtUtil) {
-        this.adminUserRepository = adminUserRepository;
-        this.staffRepo = staffRepo;
-        this.jwtUtil = jwtUtil;
-    }
 
     @Override
     public boolean supportsParameter(MethodParameter parameter) {
-        return parameter.getParameterAnnotation(CurrentAdmin.class) != null &&
-                parameter.getParameterType().equals(AdminUser.class);
+        return parameter.getParameterAnnotation(CurrentStaff.class) != null &&
+                parameter.getParameterType().equals(StaffUser.class);
     }
 
     @Override
@@ -40,26 +31,21 @@ public class CurrentAdminResolver implements HandlerMethodArgumentResolver {
                                   ModelAndViewContainer mavContainer,
                                   NativeWebRequest webRequest,
                                   WebDataBinderFactory binderFactory) {
-
         String email = SecurityUtils.getUser(parameter,mavContainer,webRequest,binderFactory,jwtUtil);
         if (email == null) return null;
 
-        Optional<AdminUser> adminOpt = adminUserRepository.findByEmail(email);
-        if (adminOpt.isPresent()) {
-            return adminOpt.get();
-        }
-
         Optional<StaffUser> staffOpt = staffRepo.findByEmail(email);
         if (staffOpt.isPresent()) {
-            return staffOpt.get().getAdmin();
+            return staffOpt.get();
         }
 
         // Handle 'required = false'
-        boolean required = parameter.getParameterAnnotation(CurrentAdmin.class).required();
+        boolean required = parameter.getParameterAnnotation(CurrentStaff.class).required();
         if (!required) {
             return null;
         }
 
-        throw new RuntimeException("Admin not found for logged-in user");
+        throw new RuntimeException("Staff not found for logged-in user");
+
     }
 }

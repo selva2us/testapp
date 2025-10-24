@@ -1,5 +1,7 @@
 package com.supermarket.pos_backend.controller;
 
+import com.supermarket.pos_backend.annotations.CurrentAdmin;
+import com.supermarket.pos_backend.annotations.CurrentStaff;
 import com.supermarket.pos_backend.dto.StaffUserRequest;
 import com.supermarket.pos_backend.model.AdminUser;
 import com.supermarket.pos_backend.model.StaffUser;
@@ -47,12 +49,8 @@ public class AdminUserController {
 
     // ✅ Add new staff under a specific admin
     @PostMapping("/add")
-    public ResponseEntity<?> addStaff(@Valid @RequestBody StaffUserRequest staffRequest){
-        String email = SecurityUtils.getLoggedInEmail();
-        AdminUser admin = adminRepo.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Admin not found"));
-
-        // Create staff entity
+    public ResponseEntity<?> addStaff(@CurrentAdmin AdminUser admin, @Valid @RequestBody StaffUserRequest staffRequest){
+             // Create staff entity
         StaffUser staff = new StaffUser();
         staff.setName(staffRequest.getName());
         staff.setEmail(staffRequest.getEmail());
@@ -71,20 +69,17 @@ public class AdminUserController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<?> getLoggedInAdmin(){
-        String email = SecurityUtils.getLoggedInEmail();
-        AdminUser admin = adminRepo.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Admin not found"));
+    public ResponseEntity<?> getLoggedInAdmin(@CurrentAdmin AdminUser admin){
         return ResponseEntity.ok(admin);
     }
 
     @GetMapping("/my-staff")
-    public ResponseEntity<?> getStaffForLoggedInAdmin( ) {
-        String email = SecurityUtils.getLoggedInEmail();
-        AdminUser admin = adminRepo.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Admin not found"));
-
+    public ResponseEntity<?> getStaffForLoggedInAdmin(@CurrentAdmin AdminUser admin) {
         return ResponseEntity.ok(staffService.getStaffByAdmin(admin.getId()));
     }
 
+    @GetMapping("/staff/me")
+    public ResponseEntity<StaffUser> getMyProfile(@CurrentStaff StaffUser staff) {
+        return ResponseEntity.ok(staff);
+    }
 }

@@ -61,7 +61,16 @@ public class ProductService {
         Product saved = productRepository.save(product);
         return toDTO(saved);
     }
+    public List<ProductDTO> getAllProductsByAdminId(Long adminId) {
+        List<Product> products = productRepository.findByAdminId(adminId);
+        return products.stream().map(this::toDTO).collect(Collectors.toList());
+    }
 
+    public ProductDTO getProductByIdAndAdminId(Long productId, Long adminId) {
+        Product product = productRepository.findByIdAndAdminId(productId, adminId)
+                .orElseThrow(() -> new RuntimeException("Product not found or not accessible"));
+        return toDTO(product);
+    }
     public List<ProductDTO> getAllProductsByAdmin(AdminUser admin) {
         return productRepository.findByAdmin(admin)
                 .stream()

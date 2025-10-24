@@ -1,16 +1,22 @@
 package com.supermarket.pos_backend.security;
 
-import com.supermarket.pos_backend.model.AdminUser;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.core.MethodParameter;
+import org.springframework.web.bind.support.WebDataBinderFactory;
+import org.springframework.web.context.request.NativeWebRequest;
+import org.springframework.web.method.support.ModelAndViewContainer;
 
 public class SecurityUtils {
+    public static String getUser(MethodParameter parameter,
+                                 ModelAndViewContainer mavContainer,
+                                 NativeWebRequest webRequest,
+                                 WebDataBinderFactory binderFactory, JwtUtil jwtUtil) {
+        HttpServletRequest request = (HttpServletRequest) webRequest.getNativeRequest();
+        String authHeader = request.getHeader("Authorization");
 
-    public static String getLoggedInEmail() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        AdminUser admin = (AdminUser) auth.getPrincipal();
-        if (auth != null) {
-            return auth.getName(); // email from JWT
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            String token = authHeader.substring(7);
+            return jwtUtil.extractEmail(token);
         }
         return null;
     }

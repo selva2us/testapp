@@ -2,6 +2,7 @@ package com.supermarket.pos_backend.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.supermarket.pos_backend.annotations.CurrentAdmin;
+import com.supermarket.pos_backend.annotations.CurrentStaff;
 import com.supermarket.pos_backend.model.*;
 import com.supermarket.pos_backend.dto.ProductDTO;
 import com.supermarket.pos_backend.repository.BrandRepository;
@@ -48,19 +49,43 @@ public class ProductController {
     private static final String UPLOAD_DIR = "uploads/";
 
     @GetMapping
-    @Operation(summary = "Get all products for the logged-in admin")
-    public ResponseEntity<List<ProductDTO>> getAllProducts(@CurrentAdmin AdminUser admin) {
-        List<ProductDTO> products = productService.getAllProductsByAdmin(admin);
+    @Operation(summary = "Get all products for logged-in admin or staff")
+    public ResponseEntity<List<ProductDTO>> getAllProducts(
+            @CurrentAdmin (required = false) AdminUser admin,
+            @CurrentStaff(required = false) StaffUser staff) {
+
+        // Determine whose adminId to use
+        Long adminId;
+        if (admin != null) {
+            adminId = admin.getId(); // Logged-in user is Admin
+        } else if (staff != null) {
+            adminId = staff.getAdmin().getId(); // Logged-in user is Staff
+        } else {
+            throw new RuntimeException("Unauthorized user");
+        }
+
+        List<ProductDTO> products = productService.getAllProductsByAdminId(adminId);
         return ResponseEntity.ok(products);
     }
 
     // Get product by ID (only if belongs to this admin)
     @GetMapping("/{id}")
-    @Operation(summary = "Get a product by ID for the logged-in admin")
+    @Operation(summary = "Get product by ID for logged-in admin or staff")
     public ResponseEntity<ProductDTO> getProductById(
             @PathVariable Long id,
-            @CurrentAdmin AdminUser admin) {
-        ProductDTO product = productService.getProductById(id, admin);
+            @CurrentAdmin(required = false) AdminUser admin,
+            @CurrentStaff(required = false) StaffUser staff) {
+
+        Long adminId;
+        if (admin != null) {
+            adminId = admin.getId();
+        } else if (staff != null) {
+            adminId = staff.getAdmin().getId();
+        } else {
+            throw new RuntimeException("Unauthorized user");
+        }
+
+        ProductDTO product = productService.getProductByIdAndAdminId(id, adminId);
         return ResponseEntity.ok(product);
     }
     // Create product with optional image

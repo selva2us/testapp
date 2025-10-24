@@ -2,6 +2,7 @@ package com.supermarket.pos_backend.repository;
 
 import com.supermarket.pos_backend.model.AdminUser;
 import com.supermarket.pos_backend.model.Bill;
+import com.supermarket.pos_backend.model.StaffUser;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -33,6 +34,8 @@ public interface BillRepository extends JpaRepository<Bill, Long> {
     Double getTotalSales();
 
     List<Bill> findByAdmin(AdminUser admin);
+    List<Bill> findByStaff(StaffUser staff);
+
     Optional<Bill> findByIdAndAdmin(Long id, AdminUser admin);
 
     @Query(value = "SELECT COALESCE(SUM(final_amount), 0) FROM bills WHERE DATE(bill_date) = CURRENT_DATE AND admin_id = :adminId", nativeQuery = true)
@@ -54,4 +57,8 @@ public interface BillRepository extends JpaRepository<Bill, Long> {
     // 3️⃣ Total sales overall for a specific admin
     @Query(value = "SELECT COALESCE(SUM(final_amount), 0) FROM bills WHERE admin_id = :adminId", nativeQuery = true)
     Double getTotalSalesByAdmin(@Param("adminId") Long adminId);
+
+    List<Bill> findByAdminId(Long adminId);
+    List<Bill> findByAdminIdAndStaffId(Long adminId, Long staffId);
+    Optional<Bill> findByIdAndAdminId(Long id, Long adminId);
 }

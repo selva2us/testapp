@@ -23,7 +23,10 @@ public class Bill {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private Long staffId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "staff_id")
+    @JsonBackReference
+    private StaffUser staff;
 
     private String customerName;
 
