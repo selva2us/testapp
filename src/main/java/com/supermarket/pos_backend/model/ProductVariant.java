@@ -32,9 +32,8 @@ public class ProductVariant {
     @Column(nullable = false)
     private int stockQuantity;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "product_id")
-    @JsonBackReference    // 👈 Prevent recursive serialization
+    @OneToOne(mappedBy = "variant")
+    @JsonBackReference("product-variant")
     private Product product;
 
     public String getDisplayLabel() {

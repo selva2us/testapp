@@ -26,9 +26,9 @@ public class BillItem {
 
     private Double totalPrice; // quantity * price
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "bill_id")
-    @JsonBackReference
+    @JsonBackReference("bill-items") // matches Bill.items
     private Bill bill;
 
     private Integer returnedQuantity = 0;

@@ -47,24 +47,24 @@ public class AdminUser {
     @Column(name = "is_paid")
     private Boolean isPaid = false;
 
-    @OneToMany(mappedBy = "admin")
-    @JsonManagedReference
-    private List<StaffUser> staffList;
+    @OneToMany(mappedBy = "admin", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference("admin-staff")
+    private List<StaffUser> staffList = new ArrayList<>();
 
     @OneToMany(mappedBy = "admin", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonManagedReference
+    @JsonManagedReference("admin-products")
     private List<Product> products = new ArrayList<>();
 
     @OneToMany(mappedBy = "admin", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonManagedReference
+    @JsonManagedReference("admin-categories")
     private List<Category> categories = new ArrayList<>();
 
     @OneToMany(mappedBy = "admin", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonManagedReference
+    @JsonManagedReference("admin-brands")
     private List<Brand> brands = new ArrayList<>();
 
     @OneToMany(mappedBy = "admin", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonManagedReference
+    @JsonManagedReference("admin-bills")
     private List<Bill> bills = new ArrayList<>();
 
     private LocalDateTime createdAt = LocalDateTime.now();

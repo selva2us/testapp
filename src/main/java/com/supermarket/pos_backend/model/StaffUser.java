@@ -46,7 +46,7 @@ public class StaffUser {
 
     @ManyToOne
     @JoinColumn(name = "admin_id")
-    @JsonBackReference
+    @JsonBackReference("admin-staff")
     private AdminUser admin;
 
     private LocalDateTime createdAt = LocalDateTime.now();

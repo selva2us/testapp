@@ -82,7 +82,7 @@ public class BillingService {
         Bill bill = billRepository.findByIdAndAdminId(returnBillDTO.getBillId(), adminId)
                 .orElseThrow(() -> new RuntimeException("Bill not found for this admin"));
 
-        // Optional: if staff, ensure the bill belongs to that staff
+        // Optional: if staffed, ensure the bill belongs to that staff
         if (staffId != null && bill.getStaff() != null && !bill.getStaff().getId().equals(staffId)) {
             throw new RuntimeException("This bill doesn't belong to the logged-in staff");
         }
@@ -119,7 +119,7 @@ public class BillingService {
         bill.setTotalAmount(billDTO.getTotalAmount());
         bill.setDiscountAmount(billDTO.getDiscountAmount());
         bill.setFinalAmount(billDTO.getFinalAmount());
-        bill.setPaymentMode(billDTO.getPaymentMode());
+        bill.setPaymentMode(PaymentMode.valueOf(billDTO.getPaymentMode()));
         bill.setBillNumber(billDTO.getBillNumber());
         bill.setTransactionId(billDTO.getTransactionId());
         return bill;

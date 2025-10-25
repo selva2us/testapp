@@ -25,8 +25,13 @@ public class Bill {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "staff_id")
-    @JsonBackReference
+    @JsonBackReference("staff-bills") // unique reference name
     private StaffUser staff;
+
+    @ManyToOne
+    @JoinColumn(name = "admin_id")
+    @JsonBackReference("admin-bills") // matches AdminUser.products etc.
+    private AdminUser admin;
 
     private String customerName;
 
@@ -41,14 +46,8 @@ public class Bill {
     private Double finalAmount;
 
     @OneToMany(mappedBy = "bill", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonManagedReference
+    @JsonManagedReference("bill-items") // unique reference name
     private List<BillItem> items = new ArrayList<>();
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "admin_id", nullable = false)
-    @JsonBackReference
-    @ColumnDefault("1")
-    private AdminUser admin;
 
     @Enumerated(EnumType.STRING)
     private PaymentMode paymentMode; // new field

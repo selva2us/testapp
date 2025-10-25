@@ -14,5 +14,13 @@ public class BillItemDTO {
     private Double price;
     private Double totalPrice;
 
-    // getters and setters
+    public static BillItemDTO fromEntity(com.supermarket.pos_backend.model.BillItem item) {
+        BillItemDTO dto = new BillItemDTO();
+        dto.setProductId(item.getProductId());
+        dto.setProductName(item.getProductName());
+        dto.setQuantity(item.getQuantity());
+        dto.setPrice(item.getPrice());
+        dto.setTotalPrice(item.getTotalPrice());
+        return dto;
+    }
 }

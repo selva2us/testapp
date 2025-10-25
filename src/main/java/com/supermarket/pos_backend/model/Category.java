@@ -1,9 +1,13 @@
 package com.supermarket.pos_backend.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "categories")
@@ -21,7 +25,13 @@ public class Category {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "admin_id", nullable = false)
-    @JsonBackReference
-    @ColumnDefault("1")
+    @JsonBackReference("admin-categories")
     private AdminUser admin;
+
+    @OneToMany(mappedBy = "category")
+    @JsonManagedReference("category-products")
+    private List<Product> products = new ArrayList<>();
+
+    public Category(Object o, String categoryName, AdminUser admin) {
+    }
 }

@@ -49,7 +49,7 @@ public class BillingController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Bill>> getAllBills(
+    public ResponseEntity<List<BillDTO>> getAllBills(
             @CurrentAdmin(required = false) AdminUser admin,
             @CurrentStaff(required = false) StaffUser staff) {
 
@@ -66,7 +66,7 @@ public class BillingController {
         }
 
         List<Bill> bills = billingService.getBills(adminId, staffId);
-        return ResponseEntity.ok(bills);
+        return ResponseEntity.ok(convertToDTO(bills));
     }
 
     @PostMapping("/return")
@@ -89,5 +89,11 @@ public class BillingController {
 
         Bill updatedBill = billingService.processReturn(adminId, staffId, returnBillDTO);
         return ResponseEntity.ok(updatedBill);
+    }
+
+    private List<BillDTO> convertToDTO(List<Bill> bills){
+        return bills.stream()
+                .map(BillDTO::fromEntity)
+                .toList();
     }
 }

@@ -27,16 +27,17 @@ public class Product {
 
     @ManyToOne
     @JoinColumn(name = "category_id")
+    @JsonBackReference("category-products")
     private Category category;
 
     @ManyToOne
     @JoinColumn(name = "brand_id")
+    @JsonBackReference("brand-products")
     private Brand brand;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "admin_id", nullable = false)
-    @JsonBackReference
-    @ColumnDefault("1")
+    @JsonBackReference("admin-products")
     private AdminUser admin;
 
     @Column(unique = true, nullable = false)
@@ -63,7 +64,7 @@ public class Product {
 
     @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
     @JoinColumn(name = "variant_id")
-    @JsonManagedReference   // 👈 Prevent circular reference
+    @JsonManagedReference("product-variant")
     private ProductVariant variant;
 
     // Helper method to set both sides
