@@ -7,6 +7,7 @@ import com.supermarket.pos_backend.dto.ReturnBillDTO;
 import com.supermarket.pos_backend.model.AdminUser;
 import com.supermarket.pos_backend.model.Bill;
 import com.supermarket.pos_backend.model.StaffUser;
+import com.supermarket.pos_backend.security.SecurityUtils;
 import com.supermarket.pos_backend.service.BillingService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/bills")
@@ -32,17 +34,9 @@ public class BillingController {
             @CurrentStaff(required = false) StaffUser staff,
             @RequestBody BillDTO billDTO) {
 
-        Long adminId;
-        Long staffId = null;
-
-        if (admin != null) {
-            adminId = admin.getId();
-        } else if (staff != null) {
-            adminId = staff.getAdmin().getId();
-            staffId = staff.getId();
-        } else {
-            throw new RuntimeException("Unauthorized user");
-        }
+        Map<String, Long> ids = SecurityUtils.getCurrentUserId(admin, staff);
+        Long adminId = ids.get("adminId");
+        Long staffId = ids.get("staffId");
 
         Bill savedBill = billingService.createBill(adminId, staffId, billDTO);
         return ResponseEntity.ok(savedBill);
@@ -52,18 +46,9 @@ public class BillingController {
     public ResponseEntity<List<BillDTO>> getAllBills(
             @CurrentAdmin(required = false) AdminUser admin,
             @CurrentStaff(required = false) StaffUser staff) {
-
-        Long adminId;
-        Long staffId = null;
-
-        if (admin != null) {
-            adminId = admin.getId();
-        } else if (staff != null) {
-            adminId = staff.getAdmin().getId();
-            staffId = staff.getId();
-        } else {
-            throw new RuntimeException("Unauthorized user");
-        }
+        Map<String, Long> ids = SecurityUtils.getCurrentUserId(admin, staff);
+        Long adminId = ids.get("adminId");
+        Long staffId = ids.get("staffId");
 
         List<Bill> bills = billingService.getBills(adminId, staffId);
         return ResponseEntity.ok(convertToDTO(bills));
@@ -75,17 +60,9 @@ public class BillingController {
             @CurrentStaff(required = false) StaffUser staff,
             @RequestBody ReturnBillDTO returnBillDTO) {
 
-        Long adminId;
-        Long staffId = null;
-
-        if (admin != null) {
-            adminId = admin.getId();
-        } else if (staff != null) {
-            adminId = staff.getAdmin().getId();
-            staffId = staff.getId();
-        } else {
-            throw new RuntimeException("Unauthorized user");
-        }
+        Map<String, Long> ids = SecurityUtils.getCurrentUserId(admin, staff);
+        Long adminId = ids.get("adminId");
+        Long staffId = ids.get("staffId");
 
         Bill updatedBill = billingService.processReturn(adminId, staffId, returnBillDTO);
         return ResponseEntity.ok(updatedBill);
