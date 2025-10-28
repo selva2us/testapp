@@ -39,8 +39,14 @@ public class StaffUser {
     @Pattern(regexp = "^[+]?[0-9]{10,15}$", message = "Invalid mobile number format")
     private String mobile; // ✅ Added mobile number
 
+    private String address;
+
+    private String idDetails;
+
+    private String accountNumber;
+
     @NotBlank(message = "Role is required")
-    private String role = "Cashier";
+    private String role = "CASHIER";
 
     private Boolean active = true;
 

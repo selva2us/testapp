@@ -29,5 +29,12 @@ public class StaffUserRequest {
 
     @NotBlank(message = "Role is required")
     private String role;
+
+    private String address;
+
+    private String idDetails;
+
+    private String accountNumber;
+
 }
 

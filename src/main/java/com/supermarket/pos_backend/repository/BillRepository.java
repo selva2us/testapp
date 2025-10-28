@@ -14,20 +14,25 @@ public interface BillRepository extends JpaRepository<Bill, Long> {
     List<Bill> findByAdminIdAndStaffId(Long adminId, Long staffId);
     Optional<Bill> findByIdAndAdminId(Long id, Long adminId);
 
-    @Query("SELECT COALESCE(SUM(b.totalAmount), 0) FROM Bill b WHERE b.admin.id = :adminId AND b.staff.id = :staffId")
+    @Query("""
+    SELECT COALESCE(SUM(b.totalAmount), 0)
+    FROM Bill b
+    WHERE b.admin.id = :adminId
+    AND (:staffId IS NULL OR b.staff.id = :staffId)
+    """)
     double getTotalSalesByStaff(@Param("adminId") Long adminId, @Param("staffId") Long staffId);
 
     @Query("""
     SELECT COALESCE(SUM(b.totalAmount), 0)
     FROM Bill b
     WHERE b.admin.id = :adminId
-      AND b.staff.id = :staffId
+      AND(:staffId IS NULL OR b.staff.id = :staffId)
       AND FUNCTION('DATE', b.billDate) = CURRENT_DATE
 """)
     double findTodayRevenueByStaff(@Param("adminId") Long adminId, @Param("staffId") Long staffId);
 
     @Query("""
-      SELECT COALESCE(SUM(b.totalAmount), 0) FROM Bill b WHERE b.admin.id = :adminId AND b.staff.id = :staffId AND b.billDate >= :sevenDaysAgo GROUP BY FUNCTION('DATE', b.billDate) ORDER BY FUNCTION('DATE', b.billDate)
+      SELECT COALESCE(SUM(b.totalAmount), 0) FROM Bill b WHERE b.admin.id = :adminId AND (:staffId IS NULL OR b.staff.id = :staffId)AND b.billDate >= :sevenDaysAgo GROUP BY FUNCTION('DATE', b.billDate) ORDER BY FUNCTION('DATE', b.billDate)
     """)
     List<Double> getLast7DaysSalesByStaff(@Param("adminId") Long adminId, @Param("staffId") Long staffId, @Param("sevenDaysAgo") LocalDateTime sevenDaysAgo);
 

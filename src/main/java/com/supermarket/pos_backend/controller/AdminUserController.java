@@ -57,6 +57,9 @@ public class AdminUserController {
         staff.setMobile(staffRequest.getMobile());
         staff.setPassword(staffRequest.getPassword());
         staff.setRole(staffRequest.getRole());
+        staff.setAddress(staffRequest.getAddress());
+        staff.setIdDetails(staffRequest.getIdDetails());
+        staff.setAccountNumber(staffRequest.getAccountNumber());
 
         StaffUser savedStaff = staffService.addStaff(admin.getId(), staff);
         return ResponseEntity.ok(savedStaff);
