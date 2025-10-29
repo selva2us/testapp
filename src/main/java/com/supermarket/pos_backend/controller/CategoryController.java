@@ -4,13 +4,13 @@ import com.supermarket.pos_backend.annotations.CurrentAdmin;
 import com.supermarket.pos_backend.model.AdminUser;
 import com.supermarket.pos_backend.model.Category;
 import com.supermarket.pos_backend.repository.CategoryRepository;
-import com.supermarket.pos_backend.security.AdminContext;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/categories")
@@ -45,8 +45,11 @@ public class CategoryController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
+    public ResponseEntity<Map<String, String>> delete(@PathVariable Long id) {
         categoryRepository.deleteById(id);
-        return ResponseEntity.noContent().build();
+        Map<String, String> response = new HashMap<>();
+        response.put("status", "success");
+        response.put("message", "Staff deleted successfully");
+        return ResponseEntity.ok(response);
     }
 }

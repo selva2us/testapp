@@ -3,16 +3,14 @@ package com.supermarket.pos_backend.controller;
 import com.supermarket.pos_backend.annotations.CurrentAdmin;
 import com.supermarket.pos_backend.model.AdminUser;
 import com.supermarket.pos_backend.model.Brand;
-import com.supermarket.pos_backend.repository.AdminUserRepository;
 import com.supermarket.pos_backend.repository.BrandRepository;
-import com.supermarket.pos_backend.security.AdminContext;
-import com.supermarket.pos_backend.security.JwtUtil;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/brands")
@@ -47,8 +45,11 @@ public class BrandController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
+    public ResponseEntity<Map<String, String>> delete(@PathVariable Long id) {
         brandRepository.deleteById(id);
-        return ResponseEntity.noContent().build();
+        Map<String, String> response = new HashMap<>();
+        response.put("status", "success");
+        response.put("message", "Brand deleted successfully");
+        return ResponseEntity.ok(response);
     }
 }

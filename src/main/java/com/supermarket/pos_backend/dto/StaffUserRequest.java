@@ -36,5 +36,8 @@ public class StaffUserRequest {
 
     private String accountNumber;
 
+    private Boolean active = true;
+    private String imageUrl;
+
 }
 

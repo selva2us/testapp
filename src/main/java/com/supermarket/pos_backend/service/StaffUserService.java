@@ -1,5 +1,6 @@
 package com.supermarket.pos_backend.service;
 
+import com.supermarket.pos_backend.dto.StaffUserRequest;
 import com.supermarket.pos_backend.model.AdminUser;
 import com.supermarket.pos_backend.model.StaffUser;
 import com.supermarket.pos_backend.repository.AdminUserRepository;
@@ -46,4 +47,34 @@ public class StaffUserService {
     public void deleteStaff(Long id) {
         staffRepo.deleteById(id);
     }
+
+    public StaffUser updateStaff(Long adminId, Long staffId, StaffUserRequest staffRequest) {
+        // Find the existing staff
+        StaffUser staff = staffRepo.findById(staffId)
+                .orElseThrow(() -> new RuntimeException("Staff not found"));
+
+        // Ensure the staff belongs to the same admin
+        if (!staff.getAdmin().getId().equals(adminId)) {
+            throw new RuntimeException("Access denied: You can update only your staff");
+        }
+
+        // Update only allowed fields
+        staff.setName(staffRequest.getName());
+        staff.setEmail(staffRequest.getEmail());
+        staff.setMobile(staffRequest.getMobile());
+        staff.setAddress(staffRequest.getAddress());
+        staff.setRole(staffRequest.getRole());
+        staff.setActive(staffRequest.getActive());
+        staff.setImageUrl(staffRequest.getImageUrl());
+        staff.setIdDetails(staffRequest.getIdDetails());
+        staff.setAccountNumber(staffRequest.getAccountNumber());
+
+        // Optional: update password if provided
+        if (staffRequest.getPassword() != null && !staffRequest.getPassword().isBlank()) {
+            staff.setPassword(staffRequest.getPassword());
+        }
+
+        return staffRepo.save(staff);
+    }
+
 }

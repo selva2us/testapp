@@ -114,8 +114,6 @@ public class BillingService {
     // ✅ Common bill setup
     private static Bill getBill(BillDTO billDTO) {
         Bill bill = new Bill();
-        bill.setCustomerName(billDTO.getCustomerName());
-        bill.setCustomerPhone(billDTO.getCustomerPhone());
         bill.setTotalAmount(billDTO.getTotalAmount());
         bill.setDiscountAmount(billDTO.getDiscountAmount());
         bill.setFinalAmount(billDTO.getFinalAmount());

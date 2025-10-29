@@ -49,6 +49,7 @@ public class StaffUser {
     private String role = "CASHIER";
 
     private Boolean active = true;
+    private String imageUrl;
 
     @ManyToOne
     @JoinColumn(name = "admin_id")

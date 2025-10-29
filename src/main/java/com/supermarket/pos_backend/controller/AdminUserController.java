@@ -6,16 +6,16 @@ import com.supermarket.pos_backend.dto.StaffUserRequest;
 import com.supermarket.pos_backend.model.AdminUser;
 import com.supermarket.pos_backend.model.StaffUser;
 import com.supermarket.pos_backend.repository.AdminUserRepository;
-import com.supermarket.pos_backend.security.SecurityUtils;
 import com.supermarket.pos_backend.service.AdminUserService;
 import com.supermarket.pos_backend.service.StaffUserService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/admins")
@@ -60,15 +60,30 @@ public class AdminUserController {
         staff.setAddress(staffRequest.getAddress());
         staff.setIdDetails(staffRequest.getIdDetails());
         staff.setAccountNumber(staffRequest.getAccountNumber());
+        staff.setImageUrl(staffRequest.getImageUrl());
 
         StaffUser savedStaff = staffService.addStaff(admin.getId(), staff);
         return ResponseEntity.ok(savedStaff);
     }
 
+    @PutMapping("/staff/{id}")
+    public ResponseEntity<?> updateStaff(
+            @CurrentAdmin AdminUser admin,
+            @PathVariable Long id,
+            @Valid @RequestBody StaffUserRequest staffRequest) {
+
+        StaffUser updatedStaff = staffService.updateStaff(admin.getId(), id, staffRequest);
+        return ResponseEntity.ok(updatedStaff);
+    }
+
     // ✅ Delete a staff user
     @DeleteMapping("/staff/{id}")
-    public void deleteStaff(@PathVariable Long id) {
+    public ResponseEntity<Map<String, String>> deleteStaff(@PathVariable Long id) {
         staffService.deleteStaff(id);
+        Map<String, String> response = new HashMap<>();
+        response.put("status", "success");
+        response.put("message", "Staff deleted successfully");
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/me")

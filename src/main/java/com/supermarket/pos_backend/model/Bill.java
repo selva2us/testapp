@@ -33,9 +33,9 @@ public class Bill {
     @JsonBackReference("admin-bills") // matches AdminUser.products etc.
     private AdminUser admin;
 
-    private String customerName;
-
-    private String customerPhone;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "customer_id")
+    private Customer customer;
 
     private LocalDateTime date;
 

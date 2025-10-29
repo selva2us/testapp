@@ -32,8 +32,6 @@ public class BillDTO {
         dto.setId(bill.getId());
         dto.setBillNumber(bill.getBillNumber());
         dto.setTransactionId(bill.getTransactionId());
-        dto.setCustomerName(bill.getCustomerName());
-        dto.setCustomerPhone(bill.getCustomerPhone());
         dto.setTotalAmount(bill.getTotalAmount());
         dto.setDiscountAmount(bill.getDiscountAmount());
         dto.setFinalAmount(bill.getFinalAmount());
