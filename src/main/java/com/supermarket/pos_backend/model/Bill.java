@@ -35,6 +35,7 @@ public class Bill {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "customer_id")
+    @JsonBackReference("customer-bills")
     private Customer customer;
 
     private LocalDateTime date;

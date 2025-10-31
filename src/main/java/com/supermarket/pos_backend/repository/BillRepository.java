@@ -1,6 +1,7 @@
 package com.supermarket.pos_backend.repository;
 
 import com.supermarket.pos_backend.model.Bill;
+import com.supermarket.pos_backend.model.Customer;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -13,6 +14,7 @@ public interface BillRepository extends JpaRepository<Bill, Long> {
     List<Bill> findByAdminId(Long adminId);
     List<Bill> findByAdminIdAndStaffId(Long adminId, Long staffId);
     Optional<Bill> findByIdAndAdminId(Long id, Long adminId);
+    List<Bill> findByCustomer(Customer customer);
 
     @Query("""
     SELECT COALESCE(SUM(b.totalAmount), 0)
