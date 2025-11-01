@@ -6,10 +6,12 @@ import com.supermarket.pos_backend.model.*;
 import com.supermarket.pos_backend.repository.*;
 import com.supermarket.pos_backend.service.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
+import java.time.LocalDateTime;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -112,5 +114,116 @@ public class CreditService {
                     return new Object[]{c.getName(), c.getPhone(), totalDue, count};
                 })
                 .collect(Collectors.toList());
+    }
+
+    public List<Map<String, Object>> getAllCustomers(Long adminId, Long staffId) {
+
+        // Get all bills under this admin (and staff if applicable)
+        List<Bill> bills = (staffId != null)
+                ? billRepo.findByAdminIdAndStaffId(adminId, staffId)
+                : billRepo.findByAdminId(adminId);
+
+        // Group bills by customer
+        Map<Customer, List<Bill>> grouped = bills.stream()
+                .filter(b -> b.getCustomer() != null)
+                .collect(Collectors.groupingBy(Bill::getCustomer));
+
+        List<Map<String, Object>> list = new ArrayList<>();
+
+        for (Map.Entry<Customer, List<Bill>> entry : grouped.entrySet()) {
+            Customer customer = entry.getKey();
+            List<Bill> customerBills = entry.getValue();
+
+            // 🔹 Filter only "Pay Later" or "Credit" bills
+            List<Bill> creditBills = customerBills.stream()
+                    .filter(b -> "CREDIT".equalsIgnoreCase(b.getPaymentMode().toString()))
+                    .toList();
+
+            // 🔹 If customer has no credit bills, skip
+            if (creditBills.isEmpty()) continue;
+
+            // 🔹 Total bill amount for credit bills
+            double totalSpent = creditBills.stream()
+                    .mapToDouble(b -> b.getFinalAmount() != null ? b.getFinalAmount() : 0)
+                    .sum();
+
+            // 🔹 Total paid = all CreditPayment entries linked to customer's credits
+            double totalPaid = customer.getCredits().stream()
+                    .flatMap(c -> c.getPayments().stream())
+                    .mapToDouble(CreditPayment::getAmount)
+                    .sum();
+
+            // 🔹 Remaining balance
+            double balance = totalSpent - totalPaid;
+
+            // 🔹 Get latest bill date among credit bills
+            LocalDateTime lastBillDate = creditBills.stream()
+                    .map(Bill::getDate)
+                    .max(LocalDateTime::compareTo)
+                    .orElse(null);
+
+            Map<String, Object> dto = new LinkedHashMap<>();
+            dto.put("id", customer.getId());
+            dto.put("name", customer.getName());
+            dto.put("phone", customer.getPhone());
+            dto.put("totalSpent", totalSpent);
+            dto.put("lastBillDate", lastBillDate);
+            dto.put("balance", balance);
+
+            list.add(dto);
+        }
+
+        return list;
+    }
+
+    public Map<String, Object> getCustomerLedger(Long customerId) {
+        Optional<Customer> optionalCustomer = customerRepo.findById(customerId);
+        if (optionalCustomer.isEmpty()) return null;
+
+        Customer customer = optionalCustomer.get();
+        List<Map<String, Object>> ledgerList = new ArrayList<>();
+
+        double totalOutstanding = 0.0;
+
+        for (CustomerCredit credit : customer.getCredits()) {
+            Bill bill = credit.getBill();
+            if (bill == null) continue;
+
+            double billAmount = bill.getFinalAmount() != null ? bill.getFinalAmount() : 0.0;
+            double totalPaid = 0.0;
+            List<Map<String, Object>> payments = new ArrayList<>();
+
+            // Add payments under this credit
+            for (CreditPayment payment : credit.getPayments()) {
+                totalPaid += payment.getAmount();
+                payments.add(Map.of(
+                        "date", payment.getPaidAt(),
+                        "amount", payment.getAmount()
+                ));
+            }
+
+            double balance = billAmount - totalPaid;
+            totalOutstanding += balance;
+
+            Map<String, Object> ledgerEntry = new LinkedHashMap<>();
+            ledgerEntry.put("billNumber", bill.getBillNumber());
+            ledgerEntry.put("billDate", bill.getBillDate());
+            ledgerEntry.put("billAmount", billAmount);
+            ledgerEntry.put("payments", payments);
+            ledgerEntry.put("totalPaid", totalPaid);
+            ledgerEntry.put("balance", balance);
+
+            ledgerList.add(ledgerEntry);
+        }
+
+        return Map.of(
+                "customer", Map.of(
+                        "id", customer.getId(),
+                        "name", customer.getName(),
+                        "phone", customer.getPhone()
+                ),
+                "ledger", ledgerList,
+                "totalOutstanding", totalOutstanding
+        );
     }
 }

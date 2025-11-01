@@ -1,9 +1,11 @@
 package com.supermarket.pos_backend.controller;
 
+import com.supermarket.pos_backend.annotations.CurrentAdmin;
+import com.supermarket.pos_backend.annotations.CurrentStaff;
 import com.supermarket.pos_backend.dto.AddPaymentRequest;
 import com.supermarket.pos_backend.dto.CreateCreditRequest;
-import com.supermarket.pos_backend.model.CustomerCredit;
-import com.supermarket.pos_backend.model.CreditStatus;
+import com.supermarket.pos_backend.model.*;
+import com.supermarket.pos_backend.security.SecurityUtils;
 import com.supermarket.pos_backend.service.CreditService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -13,9 +15,9 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/credits")
+@RequestMapping("/api/customers")
 @RequiredArgsConstructor
-public class CreditController {
+public class CustomerController {
 
     private final CreditService creditService;
 
@@ -37,7 +39,7 @@ public class CreditController {
         return ResponseEntity.ok(updated);
     }
 
-    @GetMapping
+    @GetMapping("/credits")
     public ResponseEntity<List<CustomerCredit>> getAllCredits(
             @RequestParam(value = "status", required = false) CreditStatus status
     ) {
@@ -57,4 +59,27 @@ public class CreditController {
     public ResponseEntity<List<Object[]>> outstandingSummary() {
         return ResponseEntity.ok(creditService.getOutstandingSummary());
     }
+
+    @GetMapping
+    public ResponseEntity<List<Map<String, Object>>> getCustomers(
+            @CurrentAdmin(required = false) AdminUser admin,
+            @CurrentStaff(required = false) StaffUser staff
+    ) {
+        Map<String, Long> ids = SecurityUtils.getCurrentUserId(admin, staff);
+        Long adminId = ids.get("adminId");
+        Long staffId = ids.get("staffId");
+
+        return ResponseEntity.ok(creditService.getAllCustomers(adminId,staffId));
+    }
+
+    @GetMapping("/{customerId}/ledger")
+    public ResponseEntity<?> getCustomerLedger(
+            @PathVariable Long customerId
+    ) {
+        Map<String, Object> response = creditService.getCustomerLedger(customerId);
+        if (response == null)
+            return ResponseEntity.notFound().build();
+        return ResponseEntity.ok(response);
+    }
+
 }
